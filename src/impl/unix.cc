@@ -419,6 +419,47 @@ diff_timespec (timespec &start, timespec &end, timespec &result) {
 }
 
 size_t
+Serial::SerialImpl::lowlevel_read (uint8_t *buf, size_t size)
+{
+    if (!is_open_) {
+        throw PortNotOpenedException ("Serial::read");
+    }
+    ssize_t bytes_read_now =
+        ::read (fd_, buf , size );
+    return bytes_read_now;
+}
+
+bool
+Serial::SerialImpl::wait_data (unsigned int timeout_ms)
+{
+    fd_set readfds;
+    struct timeval total_timeout;
+    // Calculate total timeout in milliseconds t_c + (t_m * N)
+    total_timeout.tv_sec = timeout_ms / 1000;
+    total_timeout.tv_usec = static_cast<int>(timeout_ms % 1000);
+    total_timeout.tv_usec *= 1000; // To convert to micro seconds
+    FD_ZERO (&readfds);
+    FD_SET (fd_, &readfds);
+    // Call select to block for serial data or a timeout
+    int r = select (fd_ + 1, &readfds, NULL, NULL, &total_timeout);
+    // Figure out what happened by looking at select's response 'r'
+    /** Error **/
+    if (r < 0) {
+        // Select was interrupted, try again
+        if (errno == EINTR) {
+            return false;
+        }
+        // Otherwise there was some error
+        THROW (IOException, errno);
+    }
+    /** Timeout **/
+    if (r == 0) {
+        return false;
+    }
+    return true;
+}
+
+size_t
 Serial::SerialImpl::read (uint8_t *buf, size_t size)
 {
   // If the port is not open, throw

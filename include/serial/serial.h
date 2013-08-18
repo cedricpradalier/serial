@@ -245,6 +245,14 @@ public:
   size_t
   read (uint8_t *buffer, size_t size);
 
+#ifndef _WIN32
+  size_t
+  lowlevel_read (uint8_t *buffer, size_t size);
+
+  bool
+  wait_data(unsigned int timeout_ms);
+#endif
+
   /*! Read a given amount of bytes from the serial port into a give buffer.
    * 
    * \param buffer A reference to a std::vector of uint8_t.

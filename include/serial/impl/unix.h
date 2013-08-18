@@ -74,6 +74,12 @@ public:
   available ();
 
   size_t
+  lowlevel_read (uint8_t *buf, size_t size = 1);
+
+  bool
+  wait_data (unsigned int timeout_ms);
+
+  size_t
   read (uint8_t *buf, size_t size = 1);
 
   size_t

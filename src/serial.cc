@@ -101,6 +101,21 @@ Serial::read_ (uint8_t *buffer, size_t size)
   return this->pimpl_->read (buffer, size);
 }
 
+#ifndef _WIN32
+size_t
+Serial::lowlevel_read (uint8_t *buffer, size_t size)
+{
+  ScopedReadLock (this->pimpl_);
+  return this->pimpl_->lowlevel_read (buffer, size);
+}
+
+bool
+Serial::wait_data(unsigned int timeout_ms) 
+{
+  return this->pimpl_->wait_data (timeout_ms);
+}
+#endif
+
 size_t
 Serial::read (uint8_t *buffer, size_t size)
 {
